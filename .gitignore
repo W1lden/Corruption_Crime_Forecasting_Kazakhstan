@@ -1,0 +1,12 @@
+myenv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+.ipynb_checkpoints/
+.env
+backup.ipynb
+test.html
+test.ipynb
+test.txt
