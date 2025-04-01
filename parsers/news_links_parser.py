@@ -52,7 +52,7 @@ while True:
             print("No more news found. Stopping...")
             break
 
-        stop_parsing = False  # Флаг для остановки парсинга всех страниц
+        stop_parsing = False  # Flag for stopping parsing of all pages
 
         for news_item in news_list:
             first_link = news_item.find("a", href=True)
@@ -78,7 +78,7 @@ while True:
                 if start_date <= news_date <= end_date:
                     all_news_links.append((first_link["href"], news_date.strftime("%Y-%m-%d")))
         
-        # Если нашли слишком старую новость, останавливаем парсинг всех страниц
+        # If we find news that is too old, we stop parsing all pages.
         if stop_parsing:
             break
 
@@ -98,7 +98,7 @@ print(f"Found {len(all_news_links)} news links.")
 # --- Save results ---
 links_df = pd.DataFrame(all_news_links, columns=["News Link", "Date"])
 OUTPUT_DIR = "..\data"
-os.makedirs(OUTPUT_DIR, exist_ok=True)  # Создаст папку, если её нет
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 output_path = os.path.join(OUTPUT_DIR, OUTPUT_FILE)
 links_df.to_csv(output_path, index=False, encoding="utf-8")
 print(f"Links saved to '{output_path}'")
