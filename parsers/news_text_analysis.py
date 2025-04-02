@@ -3,7 +3,7 @@ import re
 import pandas as pd
 from collections import defaultdict
 
-# Список ключевых слов (с сохранением многословных выражений)
+# List of keywords (including multi-word expressions)
 keywords = [
     "коррупция", "взятка", "подкуп", "злоупотребление полномочиями", "непотизм", "бездействие",
     "конфликт интересов", "теневая экономика", "финансовые махинации", "противодействие коррупции", 
@@ -22,71 +22,71 @@ keywords = [
     "правонарушение", "антикор", "антикора"
 ]
 
-# Инициализация pymorphy3
+# Initialize pymorphy3
 morph = pymorphy3.MorphAnalyzer()
 
-# Генерация всех форм ключевых слов (только для одиночных слов)
+# Generate all forms of keywords (only for single words)
 def generate_forms(word):
     parsed = morph.parse(word)[0]
     return {form.word for form in parsed.lexeme}
 
-# Создаём набор всех форм ключевых слов (исключаем многословные выражения)
+# Create a set of all keyword forms (exclude multi-word expressions)
 keyword_forms = {}
 for keyword in keywords:
-    if " " not in keyword:  # Пропускаем многословные фразы
+    if " " not in keyword:  # Skip multi-word expressions
         keyword_forms[keyword.lower()] = generate_forms(keyword.lower())
 
-# Объединяем формы в один набор
+# Combine all forms into one set
 all_keyword_forms = set()
 for forms in keyword_forms.values():
     all_keyword_forms.update(forms)
 
-# Функция подсчёта общего количества вхождений ключевых слов
+# Function to count total keyword occurrences
 def find_total_keyword_occurrences(text):
     text = text.lower()
     word_count = defaultdict(int)
 
-    # Проверяем многословные фразы в тексте
+    # Check for multi-word phrases in the text
     for phrase in keywords:
-        if " " in phrase and phrase in text:  # Проверка фраз
-            word_count[phrase] += text.count(phrase)  
+        if " " in phrase and phrase in text:
+            word_count[phrase] += text.count(phrase)
 
-    # Токенизация (учёт слов с дефисами)
+    # Tokenization (including hyphenated words)
     tokens = re.findall(r'\b[\w-]+\b', text)
 
-    # Подсчёт одиночных слов
+    # Count single word keywords
     for token in tokens:
-        if token in all_keyword_forms:  # Проверяем без лемматизации
-            lemma = morph.parse(token)[0].normal_form  # Лемматизируем
+        if token in all_keyword_forms:
+            lemma = morph.parse(token)[0].normal_form
             if lemma in all_keyword_forms:
-                word_count[lemma] += 1  
+                word_count[lemma] += 1
 
     return word_count
 
-# Загружаем датасет новостей
+# Load the news dataset
 df = pd.read_csv("../data/news_text_all.csv")
 all_results = []
 
-# Обрабатываем каждую новость
+# Process each news article
 for index, row in df.iterrows():
-    print(f"Парсим новость: {row['Date']}")
+    print(f"Processing article: {row['Date']}")
     try:
         date = row["Date"]
         text = row["Text"]
 
-        # Подсчитываем ключевые слова
+        # Count keyword occurrences
         keyword_counts = find_total_keyword_occurrences(text)
 
-        # Формируем результаты
-        result = {"Дата": date}
+        # Prepare result row
+        result = {"Date": date}
         for keyword in keywords:
             result[keyword] = keyword_counts.get(keyword.lower(), 0)
         all_results.append(result)
 
     except Exception as e:
-        print(f"Ошибка при обработке {row['Date']}: {e}")
+        print(f"Error while processing {row['Date']}: {e}")
 
-# Сохраняем результаты в CSV
+# Save results to CSV
 results_df = pd.DataFrame(all_results)
 results_df.to_csv("../data/news_text_parsed.csv", index=False, encoding='utf-8')
-print("Результаты сохранены в news_text_parsed")
+print("Results saved to news_text_parsed.csv")
